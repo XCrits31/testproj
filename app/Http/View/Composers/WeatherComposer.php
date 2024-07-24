@@ -14,6 +14,18 @@ class WeatherComposer
 {
     protected $cacheDuration = 3600;
     public $cacheKey = "weather";
+    public $weather = [
+                'hours' => [
+                     [
+                'airTemperature' => [
+                    'sg' => 'null'
+                ],
+                'windSpeed' => [
+                    'sg' => 'null'
+                ]
+            ]
+        ]
+    ];
 
     public function compose(View $view)
     {
@@ -26,10 +38,7 @@ class WeatherComposer
                 $weather = $this->getWeatherData($ip);
             } catch (\Exception $e) {
                 Log::error($e->getMessage());
-                $weather = [
-                    'temperature'=> 'null',
-                    'wind_speed' => 'null'
-                ];
+                $weather = $this->weather;
             }
         }
         $view->with('weather', $weather);
@@ -70,13 +79,14 @@ class WeatherComposer
                 'params' => 'airTemperature,windSpeed',
                 'source' => 'sg',
             ]);
+        if($response->failed()) {
+            throw new \Exception('failed to fetch weather data');
+        } else
         if ($response->successful()) {
             $weatherData = $response->json();
             Cache::put($this->cacheKey, $weatherData, $this->cacheDuration);
             return $weatherData;
-        }
-        if($response->failed()) {
-            return new \Exception('failed to fetch weather data');
-        }
+        } else return $this->weather;
+
     }
 }

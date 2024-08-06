@@ -2,5 +2,6 @@
 
 @section('content')
     <h1>{{ $venue->name }}</h1>
-    <a href="{{ route('venues.edit', $venue->id) }}">Edit</a>
+    @if (Auth::user()->usertype == 'admin')<a href="{{ route('venues.edit', $venue->id) }}">Edit</a>
+    @endif
 @endsection

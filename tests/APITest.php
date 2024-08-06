@@ -3,6 +3,8 @@
 namespace Tests;
 
 // use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Http\View\Composers\WeatherComposer;
+use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class APITest extends TestCase
@@ -10,10 +12,15 @@ class APITest extends TestCase
     /**
      * A basic test example.
      */
-    public function test_the_application_returns_a_successful_response(): void
+    public function test_connect_to_api_and_all_the_weather_stuff(): void
     {
-        $response = $this->get('/');
-
-        $response->assertStatus(200);
+        $nullw = [];
+        $weather = new WeatherComposer();
+        $data = [];
+        try {
+            $data = $weather->testGetWeatherData();
+           // Log::debug($data);
+        } catch (\Exception $e) {Log::error($e->getMessage());}
+        $this->assertNotSame($nullw, $data);
     }
 }

@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 
 class VenueController extends Controller
 {
+
     public function index()
     {
         $venues = Venue::sortable()->paginate(5);
@@ -17,7 +18,7 @@ class VenueController extends Controller
 
     public function create()
     {
-        if(auth()->user()->role == 'admin') {
+        if(auth()->user()->usertype == 'admin') {
             return view('venues.create');
         }
         else{
@@ -28,7 +29,7 @@ class VenueController extends Controller
 
     public function store(Request $request)
     {
-        if(auth()->user()->role == 'admin') {
+        if(auth()->user()->usertype == 'admin') {
         $request->validate([
             'name' => 'required',
         ]);
@@ -50,7 +51,7 @@ class VenueController extends Controller
 
     public function edit(Venue $venue)
     {
-        if(auth()->user()->role == 'admin') {
+        if(auth()->user()->usertype == 'admin') {
         return view('venues.edit', compact('venue'));
         }
         else{
@@ -61,7 +62,7 @@ class VenueController extends Controller
 
     public function update(Request $request, Venue $venue)
     {
-        if(auth()->user()->role == 'admin') {
+        if(auth()->user()->usertype == 'admin') {
         $request->validate([
             'name' => 'required',
         ]);
@@ -78,7 +79,7 @@ class VenueController extends Controller
 
     public function destroy(Venue $venue)
     {
-        if (auth()->user()->role == 'admin') {
+        if (auth()->user()->usertype == 'admin') {
             $venue->delete();
             return redirect()->route('venues.index');
         } else {

@@ -50,6 +50,11 @@ class WeatherComposer
         $location = $this->getLocation($ip);
         return $this->getWeather($location['latitude'], $location['longitude']);
     }
+    public function testGetWeatherData(){
+        $ip = '105.48.250.158';
+        $location = $this->getLocation($ip);
+        return $this->getWeather($location['latitude'], $location['longitude']);
+    }
 
     protected function getLocation($ip)
     {

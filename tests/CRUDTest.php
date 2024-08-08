@@ -36,6 +36,11 @@ class CRUDTest extends TestCase
 
     public function test_CRUD_read_view_venue()
     {
+        $user = User::factory()->create(['usertype' => 'admin']);
+        $this->actingAs($user);
+        $data = ['name' => 'New Venue'];
+        $this->post(route('venues.store'), $data);
+
         $user = User::factory()->create(['usertype' => 'user']);
         $this->actingAs($user);
         $search = Venue::where('name', 'New Venue')->first();
@@ -46,24 +51,40 @@ class CRUDTest extends TestCase
 
     public function test_CRUD_non_admin_cannot_create_event()
     {
+        $admin = User::factory()->create(['usertype' => 'admin']);
+        $this->actingAs($admin);
+        $data = ['name' => 'New Venue'];
+        $this->post(route('venues.store'), $data);
+        $search = Venue::where('name', 'New Venue')->first();
+
         $user = User::factory()->create(['usertype' => 'user']);
         $this->actingAs($user);
-        $search = Venue::where('name', 'New Venue')->first();
+        $fakeImage = UploadedFile::fake()->image('photo.jpg', 800, 800);
+        $eventDate = new DateTime('2024-12-12');
+        $title = 'new test event';
         $data = [
-            'title' => 'New Event',
-            'poster'=> UploadedFile::fake()->image('photo.jpg'),
-            'event_date' => '2024-12-12',
+            'title' => $title,
+            'poster'=> $fakeImage,
+            'event_date' => $eventDate->format('Y-m-d'),
             'venue_id' => $search->id,
         ];
-        $this->post(route('events.store'), $data);
-        $this->assertDatabaseMissing('events', $data);
+        $testdata = [
+            'title' => $title,
+            'event_date' => $eventDate->format('Y-m-d'),
+            'venue_id' => $search->id,
+        ];
+        $response = $this->post(route('events.store'), $data);
+        $response->assertStatus(302);
+        $this->assertDatabaseMissing('events', $testdata);
     }
     public function test_CRUD_admin_can_create_event()
     {
-        $this->withoutExceptionHandling();
         $user = User::factory()->create(['usertype' => 'admin']);
         $this->actingAs($user);
+        $data = ['name' => 'New Venue'];
+        $this->post(route('venues.store'), $data);
         $search = Venue::where('name', 'New Venue')->first();
+
         $fakeImage = UploadedFile::fake()->image('photo.jpg', 800, 800);
         $eventDate = new DateTime('2024-12-12');
         $title = 'new test event';
@@ -86,8 +107,24 @@ class CRUDTest extends TestCase
 
     public function test_CRUD_read_view_event()
     {
-        $user = User::factory()->create(['usertype' => 'user']);
-        $this->actingAs($user);
+        $admin = User::factory()->create(['usertype' => 'admin']);
+        $this->actingAs($admin);
+        $data = ['name' => 'New Venue'];
+        $this->post(route('venues.store'), $data);
+        $search = Venue::where('name', 'New Venue')->first();
+        $fakeImage = UploadedFile::fake()->image('photo.jpg', 800, 800);
+        $eventDate = new DateTime('2024-12-12');
+        $title = 'new test event';
+        $data = [
+            'title' => $title,
+            'poster'=> $fakeImage,
+            'event_date' => $eventDate->format('Y-m-d'),
+            'venue_id' => $search->id,
+        ];
+        $this->post(route('events.store'), $data);
+
+        $admin = User::factory()->create(['usertype' => 'user']);
+        $this->actingAs($admin);
         $search = Event::where('title', 'new test event')->first();
         $search_id = $search->id;
         $response = $this->get(route('events.show', $search_id));
@@ -95,13 +132,27 @@ class CRUDTest extends TestCase
     }
 
     public function test_CRUD_non_admin_cannot_update_event(){
+        $admin = User::factory()->create(['usertype' => 'admin']);
+        $this->actingAs($admin);
+
+        $data = ['name' => 'New Venue'];
+        $this->post(route('venues.store'), $data);
+        $search = Venue::where('name', 'New Venue')->first();
+        $fakeImage = UploadedFile::fake()->image('photo.jpg', 800, 800);
+        $eventDate = new DateTime('2024-12-12');
+        $title = 'new test event';
+        $data = [
+            'title' => $title,
+            'poster'=> $fakeImage,
+            'event_date' => $eventDate->format('Y-m-d'),
+            'venue_id' => $search->id,
+        ];
+        $this->post(route('events.store'), $data);
+        $searchEvent = Event::where('title', 'new test event')->first();
+
         $user = User::factory()->create(['usertype' => 'user']);
         $this->actingAs($user);
-
-        $searchEvent = Event::where('title', 'new test event')->first();
-        $search = Venue::where('name', 'New Venue')->first();
-
-        $eventDate = new DateTime('2024-12-12');
+        $eventDate = new DateTime('2025-12-12');
         $fakeImage = UploadedFile::fake()->image('updated_photo.jpg', 800, 800);
         $title = 'updated test event';
         $data = [
@@ -121,13 +172,25 @@ class CRUDTest extends TestCase
     }
 
     public function test_CRUD_admin_can_update_event(){
-        $user = User::factory()->create(['usertype' => 'admin']);
-        $this->actingAs($user);
+        $admin = User::factory()->create(['usertype' => 'admin']);
+        $this->actingAs($admin);
 
-        $searchEvent = Event::where('title', 'new test event')->first();
+        $data = ['name' => 'New Venue'];
+        $this->post(route('venues.store'), $data);
         $search = Venue::where('name', 'New Venue')->first();
-
+        $fakeImage = UploadedFile::fake()->image('photo.jpg', 800, 800);
         $eventDate = new DateTime('2024-12-12');
+        $title = 'new test event';
+        $data = [
+            'title' => $title,
+            'poster'=> $fakeImage,
+            'event_date' => $eventDate->format('Y-m-d'),
+            'venue_id' => $search->id,
+        ];
+        $this->post(route('events.store'), $data);
+        $searchEvent = Event::where('title', 'new test event')->first();
+
+        $eventDate = new DateTime('2025-12-12');
         $fakeImage = UploadedFile::fake()->image('updated_photo.jpg', 800, 800);
         $title = 'updated test event';
         $data = [
@@ -147,26 +210,60 @@ class CRUDTest extends TestCase
     }
     public function test_CRUD_non_admin_cannot_delete_event()
     {
+        $admin = User::factory()->create(['usertype' => 'admin']);
+        $this->actingAs($admin);
+        $data = ['name' => 'New Venue'];
+        $this->post(route('venues.store'), $data);
+        $search = Venue::where('name', 'New Venue')->first();
+
+        $fakeImage = UploadedFile::fake()->image('photo.jpg', 800, 800);
+        $eventDate = new DateTime('2024-12-12');
+        $title = 'new test event';
+        $data = [
+            'title' => $title,
+            'poster'=> $fakeImage,
+            'event_date' => $eventDate->format('Y-m-d'),
+            'venue_id' => $search->id,
+        ];
+        $this->post(route('events.store'), $data);
+        $searchEvent = Event::where('title', 'new test event')->first();
         $user = User::factory()->create(['usertype' => 'user']);
         $this->actingAs($user);
-        $search = Event::where('title', 'updated test event')->first();
-        $this->delete(route('events.destroy', $search->id));
-        $this->assertDatabaseHas('events', ['id' => $search->id, 'title' => 'updated test event']);
+        $this->delete(route('events.destroy', $searchEvent->id));
+        $this->assertDatabaseHas('events', ['id' => $searchEvent->id, 'title' => 'new test event']);
     }
 
     public function test_CRUD_admin_can_delete_event()
     {
-        $user = User::factory()->create(['usertype' => 'admin']);
-        $this->actingAs($user);
-        $search = Event::where('title', 'updated test event')->first();
-        $this->delete(route('events.destroy', $search->id));
-        $this->assertDatabaseMissing('events', ['id' => $search->id, 'title' => 'updated test event']);
+        $admin = User::factory()->create(['usertype' => 'admin']);
+        $this->actingAs($admin);
+        $data = ['name' => 'New Venue'];
+        $this->post(route('venues.store'), $data);
+        $search = Venue::where('name', 'New Venue')->first();
+
+        $fakeImage = UploadedFile::fake()->image('photo.jpg', 800, 800);
+        $eventDate = new DateTime('2024-12-12');
+        $title = 'new test event';
+        $data = [
+            'title' => $title,
+            'poster'=> $fakeImage,
+            'event_date' => $eventDate->format('Y-m-d'),
+            'venue_id' => $search->id,
+        ];
+        $this->post(route('events.store'), $data);
+        $searchEvent = Event::where('title', 'new test event')->first();
+        $this->delete(route('events.destroy', $searchEvent->id));
+        $this->assertDatabaseMissing('events', ['id' => $searchEvent->id, 'title' => 'new test event']);
     }
 
     public function test_CRUD_non_admin_cannot_update_venue(){
+        $admin = User::factory()->create(['usertype' => 'admin']);
+        $this->actingAs($admin);
+        $data = ['name' => 'New Venue'];
+        $this->post(route('venues.store'), $data);
+        $search = Venue::where('name', 'New Venue')->first();
         $user = User::factory()->create(['usertype' => 'user']);
         $this->actingAs($user);
-        $search = Venue::where('name', 'New Venue')->first();
         $data = [
             'name' => 'Updated New Venue',
         ];
@@ -177,6 +274,8 @@ class CRUDTest extends TestCase
     public function test_CRUD_admin_can_update_venue(){
         $user = User::factory()->create(['usertype' => 'admin']);
         $this->actingAs($user);
+        $data = ['name' => 'New Venue'];
+        $this->post(route('venues.store'), $data);
         $search = Venue::where('name', 'New Venue')->first();
         $data = [
             'name' => 'Updated New Venue',
@@ -187,17 +286,23 @@ class CRUDTest extends TestCase
 
     public function test_CRUD_non_admin_cannot_delete_venue()
     {
+        $admin = User::factory()->create(['usertype' => 'admin']);
+        $this->actingAs($admin);
+        $data = ['name' => 'Updated New Venue'];
+        $this->post(route('venues.store'), $data);
+        $search = Venue::where('name', 'Updated New Venue')->first();
         $user = User::factory()->create(['usertype' => 'user']);
         $this->actingAs($user);
-        $search = Venue::where('name', 'Updated New Venue')->first();
         $this->delete(route('venues.destroy', $search->id));
         $this->assertDatabaseHas('venues', ['id' => $search->id, 'name' => 'Updated New Venue']);
     }
 
     public function test_CRUD_admin_can_delete_venue()
     {
-        $user = User::factory()->create(['usertype' => 'admin']);
-        $this->actingAs($user);
+        $admin = User::factory()->create(['usertype' => 'admin']);
+        $this->actingAs($admin);
+        $data = ['name' => 'Updated New Venue'];
+        $this->post(route('venues.store'), $data);
         $search = Venue::where('name', 'Updated New Venue')->first();
         $this->delete(route('venues.destroy', $search->id));
         $this->assertDatabaseMissing('venues', ['id' => $search->id, 'name' => 'Updated New Venue']);

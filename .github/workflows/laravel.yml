@@ -38,9 +38,6 @@ jobs:
       
     - name: Directory Permissions
       run: chmod -R 777 storage bootstrap/cache
-    
-    - name: Create database
-      run: php artisan migrate --force
 
     - name: Run Tests
       run: php artisan test --coverage --min=100

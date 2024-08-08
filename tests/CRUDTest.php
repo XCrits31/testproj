@@ -8,12 +8,14 @@ use App\Models\Event;
 use App\Models\User;
 use App\Models\Venue;
 use DateTime;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class CRUDTest extends TestCase
 {
+    use RefreshDatabase;
     public function test_CRUD_non_admin_cannot_create_venue()
     {
         $user = User::factory()->create(['usertype' => 'user']);

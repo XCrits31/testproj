@@ -46,19 +46,12 @@ class WeatherComposer
 
     protected function getWeatherData($ip)
     {
-       $ip = '105.48.250.158';
-        $location = $this->getLocation($ip);
-        return $this->getWeather($location['latitude'], $location['longitude']);
-    }
-    public function testGetWeatherData(){
-        $ip = '105.48.250.158';
         $location = $this->getLocation($ip);
         return $this->getWeather($location['latitude'], $location['longitude']);
     }
 
     protected function getLocation($ip)
     {
-        $ip = '105.48.250.158';
         $response = Http::get("http://ipinfo.io/{$ip}/json");
 
         if ($response->successful()) {

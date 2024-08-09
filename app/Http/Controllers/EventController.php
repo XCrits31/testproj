@@ -57,7 +57,7 @@ class EventController extends Controller
                 $image = $manager->read('storage/posters/' . $originalName);
 
 
-                if ($image->width() > 800) {
+                if ($image->width() > 800 || $image->height() > 800) {
                     $image->crop(800, 800, 0, 0, '000000', 'center');
                 }
                 $image->save('storage/posters/' . $originalName);
@@ -125,7 +125,7 @@ class EventController extends Controller
                $image = $manager->read('storage/posters/' . $data['poster']);
 
 
-               if ($image->width() > 800) {
+               if ($image->width() > 800 || $image->height() > 800) {
                    $image->crop(800, 800, 0, 0, '000000', 'center');
                }
                $image->save('storage/posters/' . $data['poster']);

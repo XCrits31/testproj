@@ -1,31 +1,31 @@
-# Medical Image Augmentation Tool
+# Event & Venue Management Platform (Test Task)
 
-A full-stack web application designed to simplify and speed up dataset preparation for deep learning models in medical imaging (Ultrasound, MRI, X-ray). 
+A robust Laravel-based web application built as a technical test task to demonstrate clean CRUD architecture, role-based access control, API integration, and automated testing (CI/CD).
 
-Instead of writing custom Python scripts for every batch, users can build augmentation pipelines through a web interface and export data.
+## Key Features & Architecture
 
-## Key Features
+* **Role-Based Access Control (RBAC):** Integrated Laravel Breeze for authentication, extended with custom user roles (Admin vs. Regular User). 
+  * *Admins* have full CRUD permissions over Events and Venues tables.
+  * *Regular users* are restricted to read-only access.
+* **Smart Weather Integration & Caching:** Detects the user's location via IP address on the fly to fetch and display current regional weather data. To prevent API rate-limiting and boost performance, weather data is cached in **Redis** with a time-to-live (TTL) restriction.
+* **Advanced Data Handling:** Server-side pagination, dynamic sorting, and image processing (via `Intervention Image`) for event/venue banners.
+* **Automated Workflow (CI/CD):** The codebase is fully covered with **PHPUnit** feature tests targeting core CRUD operations and authentication guardrails. A **GitHub Actions** workflow triggers on every push to ensure no breaking changes hit the main branch.
 
-* **Pipeline Builder:** Combine multiple transformations like rotation, contrast adjustments, zoom, noise insertion, and elastic deformation.
-* **Medical AI Integration:** Uses MONAI and PyTorch under the hood for professional-grade medical image processing.
-* **Flexible Export:** Download processed datasets as standard PNGs or ready-to-train PyTorch tensor (`.pt`) files, individually or in bulk (ZIP).
-* **History & Reuse:** All pipelines and transformation histories are saved in MySQL for future use.
+## Tech Stack
 
-## Architecture & Tech Stack
+* **Backend:** PHP 8.2+, Laravel 11
+* **Database & Caching:** MySQL 8, Redis
+* **Frontend:** Vite, TailwindCSS / Bootstrap
+* **Testing & DevOps:** PHPUnit, GitHub Actions
+* **Key Packages:** Laravel Breeze, Intervention Image
 
-The project uses a decoupled architecture where Laravel handles the web interface, queues, and metadata, while a Python service processes the heavy image transformations.
+## Core Logic 
 
-* **Backend:** Laravel 11 (PHP 8.2), Artisan Jobs (Queues), REST API
-* **AI & Processing:** Python 3.10, MONAI 1.x, PyTorch
-* **Real-time Updates:** Pusher Channels, Laravel Echo
-* **Frontend:** Blade, Bootstrap 5, Vanilla JavaScript
-* **Database:** MySQL 8 + Eloquent ORM
-* **DevOps:** Nginx, Crontab
+### 1. Authorization Guardrails
+Role checks are handled efficiently via Laravel **Middleware**. If a regular user tries to force a `POST/PUT/DELETE` route, the application aborts immediately with a `403 Forbidden` response.
 
-## How It Works (Under the Hood)
-
-1. **Upload:** User uploads medical images (e.g., DICOM converted to PNG/arrays).
-2. **Pipeline Setup:** User adjusts sliders for transformations.
-3. **Queue Processing:** When the user clicks "Regenerate", Laravel dispatches an **Artisan Job** to handle the bulk generation asynchronously, offloading the main thread.
-4. **Python Execution:** The background job triggers the Python script utilizing MONAI/PyTorch to perform heavy mathematical matrix deformations.
-5. **Real-time Notification:** Once processing is done, Pusher sends an event to the frontend, and the user gets link for downloading and preview changes in all imported images.
+### 2. Weather Fetching & Redis Lifecycle
+Instead of spamming the third-party weather API on every page refresh, the logic follows a standard caching pattern:
+User req -> Check Redis Cache for IP/Region
+- Cache Hit  -> Return cached weather JSON immediately
+- Cache Miss -> Fetch from Weather API -> Save to Redis -> Return data
